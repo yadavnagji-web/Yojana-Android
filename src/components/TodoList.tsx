@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import TodoItem from "./TodoItem";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, ListFilter, CheckCircle2, XCircle } from "lucide-react";
+import { PlusCircle, ListFilter, CheckCircle2, XCircle, Lightbulb } from "lucide-react";
 import { showSuccess, showError } from "@/utils/toast";
 import {
   AlertDialog,
@@ -18,6 +18,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
+import { useAICategorySuggestion } from "@/hooks/use-ai-category-suggestion"; // Import the new hook
 
 interface Todo {
   id: string;
@@ -31,6 +32,8 @@ const TodoList: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [newTodoText, setNewTodoText] = useState<string>("");
   const [filter, setFilter] = useState<Filter>("all");
+
+  const suggestedCategory = useAICategorySuggestion(newTodoText); // Use the AI suggestion hook
 
   // Load todos from local storage on initial render
   useEffect(() => {
@@ -102,7 +105,7 @@ const TodoList: React.FC = () => {
         My Smart Task List
       </h1>
 
-      <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 mb-8">
+      <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 mb-4">
         <Input
           type="text"
           placeholder="What needs to be done?"
@@ -119,6 +122,13 @@ const TodoList: React.FC = () => {
           <span>Add Task</span>
         </Button>
       </div>
+
+      {newTodoText.trim() !== "" && suggestedCategory !== "Other" && (
+        <div className="flex items-center justify-center text-blue-700 text-sm mb-6 p-2 bg-blue-50 rounded-lg border border-blue-200 shadow-sm">
+          <Lightbulb className="h-4 w-4 mr-2" />
+          <span>AI Suggestion: <span className="font-semibold">{suggestedCategory}</span></span>
+        </div>
+      )}
 
       <div className="flex justify-center space-x-3 mb-8">
         <Button
