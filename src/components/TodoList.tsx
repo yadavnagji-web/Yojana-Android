@@ -17,23 +17,43 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { useAICategorySuggestion } from "@/hooks/use-ai-category-suggestion"; // Import the new hook
+
+type Category = "Work" | "Personal" | "Shopping" | "Health" | "Learning" | "Other";
 
 interface Todo {
   id: string;
   text: string;
   completed: boolean;
+  category: Category; // Added category field
 }
 
-type Filter = "all" | "active" | "completed";
+type Filter = "all" | "active" | "completed" | Category;
 
 const TodoList: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [newTodoText, setNewTodoText] = useState<string>("");
   const [filter, setFilter] = useState<Filter>("all");
+  const [selectedCategoryForNewTodo, setSelectedCategoryForNewTodo] = useState<Category>("Other");
 
   const suggestedCategory = useAICategorySuggestion(newTodoText); // Use the AI suggestion hook
+
+  // Update selectedCategoryForNewTodo when suggestedCategory changes, but only if the user hasn't manually selected one
+  useEffect(() => {
+    if (newTodoText.trim() !== "") {
+      setSelectedCategoryForNewTodo(suggestedCategory);
+    } else {
+      setSelectedCategoryForNewTodo("Other");
+    }
+  }, [suggestedCategory, newTodoText]);
 
   // Load todos from local storage on initial render
   useEffect(() => {
@@ -57,9 +77,11 @@ const TodoList: React.FC = () => {
       id: Date.now().toString(),
       text: newTodoText.trim(),
       completed: false,
+      category: selectedCategoryForNewTodo,
     };
     setTodos((prevTodos) => [...prevTodos, newTodo]);
     setNewTodoText("");
+    setSelectedCategoryForNewTodo("Other"); // Reset category after adding
     showSuccess("Task added successfully!");
   };
 
@@ -94,10 +116,15 @@ const TodoList: React.FC = () => {
   const filteredTodos = todos.filter((todo) => {
     if (filter === "active") return !todo.completed;
     if (filter === "completed") return todo.completed;
+    if (filter !== "all" && ["Work", "Personal", "Shopping", "Health", "Learning", "Other"].includes(filter as Category)) {
+      return todo.category === filter;
+    }
     return true;
   });
 
   const hasCompletedTodos = todos.some(todo => todo.completed);
+
+  const categories: Category[] = ["Work", "Personal", "Shopping", "Health", "Learning", "Other"];
 
   return (
     <div className="max-w-2xl mx-auto p-8 bg-gradient-to-br from-blue-100 to-indigo-200 rounded-3xl shadow-2xl border border-blue-300">
@@ -114,6 +141,18 @@ const TodoList: React.FC = () => {
           onKeyPress={(e) => e.key === "Enter" && addTodo()}
           className="flex-grow p-4 text-lg border-2 border-blue-400 rounded-xl focus:ring-4 focus:ring-blue-500 focus:border-transparent transition-all duration-300 shadow-sm"
         />
+        <Select onValueChange={(value: Category) => setSelectedCategoryForNewTodo(value)} value={selectedCategoryForNewTodo}>
+          <SelectTrigger className="w-full sm:w-[180px] p-4 text-lg border-2 border-blue-400 rounded-xl focus:ring-4 focus:ring-blue-500 focus:border-transparent transition-all duration-300 shadow-sm">
+            <SelectValue placeholder="Category" />
+          </SelectTrigger>
+          <SelectContent className="rounded-xl shadow-lg border-blue-200">
+            {categories.map((cat) => (
+              <SelectItem key={cat} value={cat} className="rounded-lg hover:bg-blue-50">
+                {cat}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Button
           onClick={addTodo}
           className="px-8 py-4 bg-blue-700 hover:bg-blue-800 text-white font-bold text-lg rounded-xl shadow-lg transition-all duration-300 flex items-center justify-center space-x-2 transform hover:scale-105"
@@ -130,7 +169,7 @@ const TodoList: React.FC = () => {
         </div>
       )}
 
-      <div className="flex justify-center space-x-3 mb-8">
+      <div className="flex flex-wrap justify-center gap-3 mb-8">
         <Button
           variant="outline"
           onClick={() => setFilter("all")}
@@ -167,6 +206,19 @@ const TodoList: React.FC = () => {
         >
           Completed
         </Button>
+        <Select onValueChange={(value: Filter) => setFilter(value)} value={filter}>
+          <SelectTrigger className="w-full sm:w-[150px] rounded-full px-5 py-2 text-base font-semibold border-blue-400 text-blue-700 hover:bg-blue-100 transition-all duration-200">
+            <SelectValue placeholder="Filter by Category" />
+          </SelectTrigger>
+          <SelectContent className="rounded-xl shadow-lg border-blue-200">
+            <SelectItem value="all" className="rounded-lg hover:bg-blue-50">All Categories</SelectItem>
+            {categories.map((cat) => (
+              <SelectItem key={cat} value={cat} className="rounded-lg hover:bg-blue-50">
+                {cat}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {filteredTodos.length === 0 ? (
@@ -174,10 +226,12 @@ const TodoList: React.FC = () => {
           {filter === "all" && <ListFilter className="h-12 w-12 text-blue-400" />}
           {filter === "active" && <XCircle className="h-12 w-12 text-red-400" />}
           {filter === "completed" && <CheckCircle2 className="h-12 w-12 text-green-400" />}
+          {categories.includes(filter as Category) && <Lightbulb className="h-12 w-12 text-yellow-400" />}
           <p>
             {filter === "all" && "No tasks yet! Add some to get started. 🎉"}
             {filter === "active" && "All tasks are completed! Time for a break. ☕"}
             {filter === "completed" && "No completed tasks in this view. Keep going! 💪"}
+            {categories.includes(filter as Category) && `No tasks found in the "${filter}" category.`}
           </p>
         </div>
       ) : (

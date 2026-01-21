@@ -7,12 +7,14 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Trash2, PencilLine, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge"; // Import Badge component
 
 interface TodoItemProps {
   todo: {
     id: string;
     text: string;
     completed: boolean;
+    category: "Work" | "Personal" | "Shopping" | "Health" | "Learning" | "Other"; // Added category
   };
   onToggleComplete: (id: string) => void;
   onDelete: (id: string) => void;
@@ -36,6 +38,17 @@ const TodoItem: React.FC<TodoItemProps> = ({ todo, onToggleComplete, onDelete, o
     }
   };
 
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case "Work": return "bg-blue-500 hover:bg-blue-600";
+      case "Personal": return "bg-green-500 hover:bg-green-600";
+      case "Shopping": return "bg-purple-500 hover:bg-purple-600";
+      case "Health": return "bg-red-500 hover:bg-red-600";
+      case "Learning": return "bg-yellow-500 hover:bg-yellow-600";
+      default: return "bg-gray-500 hover:bg-gray-600";
+    }
+  };
+
   return (
     <div className="flex items-center justify-between p-4 bg-white rounded-xl shadow-md mb-3 border border-blue-100 transition-all duration-200 hover:shadow-lg">
       <div className="flex items-center space-x-4 flex-grow">
@@ -55,16 +68,26 @@ const TodoItem: React.FC<TodoItemProps> = ({ todo, onToggleComplete, onDelete, o
             autoFocus
           />
         ) : (
-          <Label
-            htmlFor={`todo-${todo.id}`}
-            className={cn(
-              "text-lg font-medium text-gray-800 cursor-pointer flex-grow",
-              todo.completed && "line-through text-gray-500 italic"
-            )}
-            onDoubleClick={() => setIsEditing(true)}
-          >
-            {todo.text}
-          </Label>
+          <div className="flex flex-col items-start flex-grow">
+            <Label
+              htmlFor={`todo-${todo.id}`}
+              className={cn(
+                "text-lg font-medium text-gray-800 cursor-pointer",
+                todo.completed && "line-through text-gray-500 italic"
+              )}
+              onDoubleClick={() => setIsEditing(true)}
+            >
+              {todo.text}
+            </Label>
+            <Badge
+              className={cn(
+                "mt-1 px-3 py-1 text-xs font-semibold text-white rounded-full shadow-sm",
+                getCategoryColor(todo.category)
+              )}
+            >
+              {todo.category}
+            </Badge>
+          </div>
         )}
       </div>
       <div className="flex space-x-2 ml-4">
