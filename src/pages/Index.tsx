@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Lightbulb, CheckCircle2, Edit, BrainCircuit } from "lucide-react";
 import { Footer } from "@/components/Footer"; // Using the new Footer component
+import AdSenseAd from "@/components/AdSenseAd"; // Import AdSenseAd component
 
 const Index = () => {
   return (
@@ -93,6 +94,9 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* AdSense Ad */}
+      <AdSenseAd slot="7408961894" />
 
       <Footer />
     </div>
